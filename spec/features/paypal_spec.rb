@@ -3,11 +3,11 @@ describe "PayPal", js: true do
 
   before do
     @gateway = Spree::Gateway::PayPalExpress.create!({
-      preferred_login: "pp_api1.ryanbigg.com",
-      preferred_password: "1383066713",
-      preferred_signature: "An5ns1Kso7MWUdW4ErQKJJJ4qi4-Ar-LpzhMJL0cu8TjM8Z2e1ykVg5B",
-      name: "PayPal",
-      active: true
+                                                         preferred_login: "ben_api1.paneco.com",
+                                                         preferred_password: "4FKM4E953Z2YTRPS",
+                                                         preferred_signature: "AFcWxV21C7fd0v3bYYYRCpSSRl31A--E.bFHcmjoYjT6ou6SZZzmHb0y",
+                                                         name: "PayPal",
+                                                         active: true
     })
     FactoryGirl.create(:shipping_method)
   end
@@ -19,7 +19,7 @@ describe "PayPal", js: true do
     # City, State and ZIP must all match for PayPal to be happy
     fill_in :order_bill_address_attributes_city, with: "Adamsville"
     select "United States of America", from: :order_bill_address_attributes_country_id
-    select "STATE_NAME_1", from: :order_bill_address_attributes_state_id
+    select "STATE_NAME", from: :order_bill_address_attributes_state_id
     fill_in :order_bill_address_attributes_zipcode, with: "35005"
     fill_in :order_bill_address_attributes_phone, with: "555-123-4567"
   end
@@ -27,16 +27,16 @@ describe "PayPal", js: true do
   def switch_to_paypal_login
     # If you go through a payment once in the sandbox, it remembers your preferred setting.
     # It defaults to the *wrong* setting for the first time, so we need to have this method.
-    unless page.has_selector?("#login #email")
-      find("#loadLogin").click
-    end
+    # unless page.has_selector?("#login #email")
+    #   find("#loadLogin").click
+    # end
   end
 
   def login_to_paypal
-    within("#loginForm") do
-      fill_in "Email", with: "pp@spreecommerce.com"
-      fill_in "Password", with: "thequickbrownfox"
-      click_button "Log in to PayPal"
+    within_frame(find("iframe")) do
+      fill_in "login_email", with: "admin-buyer@paneco.com.sg"
+      fill_in "login_password", with: "passw0rd"
+      click_button "Log In"
     end
   end
 
@@ -58,7 +58,7 @@ describe "PayPal", js: true do
     end
   end
 
-  xit "pays for an order successfully" do
+  it "pays for an order successfully" do
     add_to_cart(product)
     click_button 'Checkout'
     fill_in_guest
@@ -80,7 +80,7 @@ describe "PayPal", js: true do
       @gateway.preferred_solution = 'Sole'
     end
 
-    xit "passes user details to PayPal" do
+    it "passes user details to PayPal" do
       add_to_cart(product)
       click_button 'Checkout'
       within("#guest_checkout") do
@@ -104,7 +104,7 @@ describe "PayPal", js: true do
     end
   end
 
-  xit "includes adjustments in PayPal summary" do
+  it "includes adjustments in PayPal summary" do
     add_to_cart(product)
     # TODO: Is there a better way to find this current order?
     order = Spree::Order.last
@@ -151,7 +151,7 @@ describe "PayPal", js: true do
       promotion.actions << action
     end
 
-    xit "includes line item adjustments in PayPal summary" do
+    it "includes line item adjustments in PayPal summary" do
       add_to_cart(product)
       # TODO: Is there a better way to find this current order?
       order = Spree::Order.last
@@ -189,7 +189,7 @@ describe "PayPal", js: true do
   context "will skip $0 items" do
     let!(:product2) { FactoryGirl.create(:product, name: 'iPod') }
 
-    xit do
+    it do
       add_to_cart(product)
       add_to_cart(product2)
 
@@ -236,7 +236,7 @@ describe "PayPal", js: true do
       calculator.save
     end
 
-    xit do
+    it do
       add_to_cart(product)
       # TODO: Is there a better way to find this current order?
       order = Spree::Order.last
@@ -298,7 +298,7 @@ describe "PayPal", js: true do
         Spree::Zone.first.update_attribute(:default_tax, true)
       end
 
-      xit do
+      it do
         add_to_cart(product3)
         visit '/cart'
 
@@ -318,6 +318,7 @@ describe "PayPal", js: true do
           page.should_not have_content(tax_string)
         end
 
+        expect(page).to have_text 'Log In to PayPal'
         login_to_paypal
         click_button "Pay Now"
         page.should have_content("Your order has been processed successfully")
@@ -356,7 +357,7 @@ describe "PayPal", js: true do
         click_link "Refund"
       end
 
-      xit "can refund payments fully" do
+      it "can refund payments fully" do
         click_button "Refund"
         page.should have_content("PayPal refund successful")
 
@@ -373,7 +374,7 @@ describe "PayPal", js: true do
         end
       end
 
-      xit "can refund payments partially" do
+      it "can refund payments partially" do
         payment = Spree::Payment.last
         # Take a dollar off, which should cause refund type to be...
         fill_in "Amount", with: payment.amount - 1
@@ -388,7 +389,7 @@ describe "PayPal", js: true do
         source.refund_type.should eql("Partial")
       end
 
-      xit "errors when given an invalid refund amount" do
+      it "errors when given an invalid refund amount" do
         fill_in "Amount", with: "lol"
         click_button "Refund"
         page.should have_content("PayPal refund unsuccessful (The partial refund amount is not valid)")

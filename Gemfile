@@ -11,6 +11,7 @@ group :test do
  gem 'capybara'
  gem 'capybara-screenshot'
  gem 'poltergeist'
+ gem 'capybara-angular' # For paypal
 end
 
 gemspec
