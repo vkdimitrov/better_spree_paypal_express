@@ -33,8 +33,8 @@ module Spree
       begin
         pp_response = provider.set_express_checkout(pp_request)
         
-        puts pp_request.inspect
-        abort pp_response.inspect
+       
+        abort pp_request.inspect + pp_response.inspect
         if pp_response.success?
           redirect_to provider.express_checkout_url(pp_response, :useraction => 'commit')
         else
